@@ -8,13 +8,14 @@ This is the official implementation of our NeurIPS 2024 paper
 
 ## Introduction
 
-* We propose **Referring Human Pose and Mask Estimation (R-HPM)** in the wild, 
-a new task that requires a unified model to predict both body keypoints and mask for a specified individual 
-using text or positional prompts. 
-This enables comprehensive and identity-aware human representations to enhance human-AI interaction.
+
+* We propose **Referring Human Pose and Mask Estimation (R-HPM)** in the wild, enabling comprehensive human representations
+of target individuals through diverse prompts.
 * We introduce **RefHuman**, a benchmark dataset with comprehensive human annotations, including
-<u>pose, mask, text and positional prompts</u> in unconstrained environments.
+<u>body keypoints, mask, text and positional prompts</u> in unconstrained environments.
 * We propose **UniPHD**, an end-to-end promptable model that supports various prompt types for R-HPM and achieves top-tier performance.
+
+<img src="datasets/overview.png" alt="model arch" width="600" height="200">
 
 ## ⭐ RefHuman Dataset
 

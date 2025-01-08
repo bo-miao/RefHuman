@@ -1,17 +1,16 @@
-import random
+import random, os
 import PIL
 import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as F
+
+from util.box_ops import box_xyxy_to_cxcywh
+from util.misc import interpolate
+
 import numpy as np
+import cv2
+from datasets.bezier_curve import BezierCurve
 
-from datasets.misc import interpolate
-
-def box_xyxy_to_cxcywh(x):
-    x0, y0, x1, y1 = x.unbind(-1)
-    b = [(x0 + x1) / 2, (y0 + y1) / 2,
-         (x1 - x0), (y1 - y0)]
-    return torch.stack(b, dim=-1)
 
 def crop(image, target, region):
     cropped_image = F.crop(image, *region)
@@ -319,6 +318,41 @@ class Normalize(object):
 
             if not self.official_coco:
                 target["scribble"] = target["scribble"].squeeze(0)
+            # re-generate scribbles during training if needed
+            if not self.eval_mode and torch.sum(target["masks"]) > 100:
+                init_mask = target['masks'].squeeze(0).int().numpy().astype(np.uint8)
+                allin = are_points_within_mask(init_mask, target['scribble'].int())
+                if not allin:
+                    kernel_size = 10
+                    ct, flag = 0, False
+                    while ct < 10:
+                        ct += 1
+                        # erode
+                        kernel = np.ones((kernel_size, kernel_size), np.uint8)
+                        object_mask = cv2.erode(init_mask, kernel, iterations=1)
+                        if np.sum(object_mask) < 50:  # reduce kernel if too strict
+                            kernel_size -= 3
+                            continue
+                        # find keypoints
+                        num_keypoints = 4
+                        foreground_coords = np.column_stack(np.where(object_mask > 0))  # h,w
+                        random_indices = np.random.choice(len(foreground_coords), num_keypoints, replace=False)
+                        random_keypoints = foreground_coords[random_indices]
+                        random_keypoints = random_keypoints[np.argsort(random_keypoints[:, 0])]
+                        # generate curve
+                        bezier_curve = BezierCurve(10)
+                        bezier_curve.add_point(random_keypoints[0])
+                        bezier_curve.add_point(random_keypoints[1])
+                        bezier_curve.add_point(random_keypoints[2])
+                        bezier_curve.add_point(random_keypoints[3])
+                        curve = np.floor(bezier_curve.curve()).astype(int)
+                        if not are_points_within_mask(init_mask, curve):
+                            continue
+                        # success
+                        flag = True
+                        break
+                    if flag:
+                        target["scribble"] = torch.from_numpy(curve)
         return image, target
 
 

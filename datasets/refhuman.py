@@ -1,3 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+"""
+COCO dataset which returns image_id for evaluation.
+Mostly copy-paste from https://github.com/pytorch/vision/blob/13b35ff/references/detection/coco_utils.py
+"""
+
 from pathlib import Path
 import cv2
 import numpy as np
@@ -6,9 +12,9 @@ import torch.utils.data
 from PIL import Image
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
-import random
-
 import datasets.transforms as T
+import random
+import json
 
 __all__ = ['build']
 
@@ -27,9 +33,9 @@ def project_kps_on_image(kps, img, radius=4):
         cv2.circle(img, (int(x_coord), int(y_coord)), radius, pose_palette[i], -1)
     return img
 
-class RefHuman(torch.utils.data.Dataset):
+class CocoDetection(torch.utils.data.Dataset):
     def __init__(self, root_path, image_set, transforms, return_masks):
-        super(RefHuman, self).__init__()
+        super(CocoDetection, self).__init__()
         return_masks = True
         self._transforms = transforms
         self.prepare = ConvertCocoPolysToMask(return_masks, image_set)
@@ -48,7 +54,7 @@ class RefHuman(torch.utils.data.Dataset):
                 if sum(num_keypoints) == 0:
                     continue
                 self.all_imgIds.append(image_id)
-            print("****** Total train img number is {}. ******".format(len(self.all_imgIds)))
+            print("Total train img number is {}.".format(len(self.all_imgIds)))
         else:
             self.mode = 'val'
             self.img_folder = root_path / "images"
@@ -58,7 +64,7 @@ class RefHuman(torch.utils.data.Dataset):
             self.all_imgIds = []
             for image_id in imgIds:
                 self.all_imgIds.append(image_id)
-            print("****** Total eval img number is {}. ******".format(len(self.all_imgIds)))
+            print("****** Total eval img number is {}.".format(len(self.all_imgIds)))
 
     def __len__(self):
         return len(self.all_imgIds)
@@ -77,6 +83,7 @@ class RefHuman(torch.utils.data.Dataset):
             img = Image.open(self.img_folder / self.coco.loadImgs(image_id)[0]['file_name'])
             img, target = self.prepare(img, target)
             target_ = target.copy()
+            init_bbox = target["boxes"]
             if self._transforms is not None:
                 img, target = self._transforms(img, target)
             if self.mode == 'val':
@@ -86,7 +93,6 @@ class RefHuman(torch.utils.data.Dataset):
                 target['origin_boxes'] = target_['boxes']
                 target['origin_area'] = target_['area']
                 target['origin_scribble'] = target_['scribble']
-                target['img_obj_num'] = self.obj_num_counter[coco_img_name]
 
             if self.mode == 'train' and len(target['boxes']) == 0:
                 idx = random.randint(0, self.__len__() - 1)
@@ -133,7 +139,7 @@ class ConvertCocoPolysToMask(object):
         keypoints = [obj["keypoints"] for obj in anno]
         boxes = [obj["bbox"] for obj in anno]
         keypoints = torch.as_tensor(keypoints, dtype=torch.float32).reshape(-1, 17, 3)
-
+        # guard against no boxes via resizing
         boxes = torch.as_tensor(boxes, dtype=torch.float32).reshape(-1, 4)
         boxes[:, 2:] += boxes[:, :2]
         boxes[:, 0::2].clamp_(min=0, max=w)
@@ -159,7 +165,7 @@ class ConvertCocoPolysToMask(object):
         target["image_id"] = image_id
         if keypoints is not None:
             target["keypoints"] = keypoints
-
+        # for conversion to coco api
         area = torch.tensor([obj["area"] for obj in anno])
         iscrowd = torch.tensor([obj["iscrowd"] if "iscrowd" in obj else 0 for obj in anno])
         target["area"] = area[keep]
@@ -214,6 +220,6 @@ def make_coco_transforms(image_set, args=None):
 
 def build(image_set, args):
     root = Path(args.coco_path)
-    dataset = RefHuman(root, image_set, transforms=make_coco_transforms(image_set), return_masks=True)
+    dataset = CocoDetection(root, image_set, transforms=make_coco_transforms(image_set), return_masks=True)
     return dataset
 

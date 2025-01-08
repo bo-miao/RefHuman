@@ -25,7 +25,7 @@ This enables comprehensive and identity-aware human representations to enhance h
 ## ⭐ RefHuman Dataset
 The images and validation split annotations for the RefHuman dataset are available for download from [GoogleDrive](https://drive.google.com/drive/folders/128R4SMIC1BlO3bFNuHYO6jeYClZtGnA3?usp=drive_link).
 
-To request access to the training annotations, please email bomiaobbb@gmail.com using your .edu or company email address. We will respond as soon as possible.
+To request access to the training annotations, please fill out [this form](https://docs.google.com/document/d/1A-SOAu6DX2gIYID68vi-59f2wsZILs52/edit?usp=sharing&ouid=108610218897155132169&rtpof=true&sd=true) and send it to bomiaobbb@gmail.com using your .edu or company email address. We will respond as soon as possible.
 
 The parsing code is provided in ```./datasets/refhuman.py```.
 

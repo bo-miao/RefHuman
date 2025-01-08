@@ -1,10 +1,11 @@
 [![License](https://img.shields.io/badge/license-CC--BY%204.0-blue)](https://creativecommons.org/licenses/by/4.0/)
+[![arXiv](https://img.shields.io/badge/cs.CV-%09arXiv%3A2205.00823-red)](https://arxiv.org/pdf/2410.20508)
 
 ## Referring Human Pose and Mask Estimation In the Wild
 
 
 This is the official pytorch implementation of our NeurIPS 2024 paper 
-"[Referring Human Pose and Mask Estimation In the Wild](https://nips.cc/virtual/2024/poster/94200)".
+"[Referring Human Pose and Mask Estimation In the Wild](https://arxiv.org/pdf/2410.20508)".
 
 
 ## Introduction
@@ -22,9 +23,12 @@ This enables comprehensive and identity-aware human representations to enhance h
 ![method](figures/uniphd.png "model arch")
 
 ## ⭐ RefHuman Dataset
+The images and validation split annotations for the RefHuman dataset are available for download from [GoogleDrive](https://drive.google.com/drive/folders/128R4SMIC1BlO3bFNuHYO6jeYClZtGnA3?usp=drive_link).
 
-Our RefHuman dataset is available for download from [GoogleDrive](https://drive.google.com/drive/folders/128R4SMIC1BlO3bFNuHYO6jeYClZtGnA3?usp=drive_link),
-with parsing code provided in ```./datasets/refhuman.py```.
+To request access to the training annotations, please email bomiaobbb@gmail.com using your .edu or company email address. We will respond as soon as possible.
+
+The parsing code is provided in ```./datasets/refhuman.py```.
+
 ```
 path/to/refhuman/
 ├── images/  
